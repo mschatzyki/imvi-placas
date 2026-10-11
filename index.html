@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Placas Imvi</title>
+<style>
+  :root { --fondo: #f7eadb; --papel: #fffaf3; --tinta: #1f1f1f; --suave: #6f6257; --marca: #7a5a44; --linea: #e2d3c2; --ok: #2f6b3f; --mal: #a3362b; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body { background: var(--fondo); color: var(--tinta); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; padding: 24px 16px 48px; }
+  main { max-width: 560px; margin: 0 auto; }
+  .marca { font-size: 13px; letter-spacing: .28em; text-transform: uppercase; color: var(--marca); text-align: center; margin: 8px 0 28px; }
+  h1 { font-size: 26px; line-height: 1.15; margin: 0 0 8px; text-wrap: balance; }
+  p { margin: 0 0 14px; }
+  .suave { color: var(--suave); font-size: 14px; }
+  .tarjeta { background: var(--papel); border: 1px solid var(--linea); border-radius: 14px; padding: 20px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; }
+  input { width: 100%; font: inherit; color: inherit; background: #fff; border: 1px solid #cdbba8; border-radius: 10px; padding: 12px; min-width: 0; }
+  input:focus { outline: 2px solid var(--marca); outline-offset: 1px; }
+  button { font: inherit; font-weight: 600; color: var(--fondo); background: var(--marca); border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer; }
+  button[disabled] { opacity: .55; cursor: default; }
+  button.liso { background: none; color: var(--marca); padding: 12px 6px; text-decoration: underline; }
+  .fila { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .fila > input { flex: 1 1 220px; }
+  .aviso { font-size: 14px; margin: 10px 0 0; min-height: 1.4em; }
+  .aviso.ok { color: var(--ok); } .aviso.mal { color: var(--mal); }
+  .centro { text-align: center; padding: 18vh 0 0; }
+  .rueda { width: 34px; height: 34px; margin: 0 auto 18px; border: 3px solid var(--linea); border-top-color: var(--marca); border-radius: 50%; animation: gira .8s linear infinite; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .rueda { animation-duration: 2.4s; } }
+  .placa { border-top: 1px solid var(--linea); padding: 16px 0; }
+  .placa:first-child { border-top: 0; padding-top: 4px; }
+  .placa h2 { font-size: 15px; margin: 0 0 8px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .estado { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: #efe2d2; color: var(--suave); }
+  .estado.activa { background: #dcebdd; color: var(--ok); }
+  details { margin-top: 20px; font-size: 14px; }
+  summary { cursor: pointer; font-weight: 600; color: var(--marca); }
+  ol { padding-left: 20px; margin: 10px 0 0; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="marca">Imvi</div>
+
+  <section id="abriendo" class="centro" hidden>
+    <div class="rueda"></div>
+    <p>Abriendo…</p>
+  </section>
+
+  <section id="sin-activar" class="tarjeta" hidden>
+    <h1>Esta placa todavía no está activada</h1>
+    <p class="suave">Si es tuya, activala con tu contraseña y el link al que querés que lleve.</p>
+    <button type="button" id="ir-a-activar">Activar esta placa</button>
+  </section>
+
+  <section id="falla" class="tarjeta" hidden>
+    <h1>No pudimos abrir la placa</h1>
+    <p class="suave" id="falla-texto">Revisá tu conexión y probá de nuevo.</p>
+    <button type="button" id="reintentar">Probar de nuevo</button>
+  </section>
+
+  <section id="entrar" hidden>
+    <h1>Configurá tu placa</h1>
+    <p class="suave">Poné tu contraseña para ver tus placas y elegir a dónde lleva cada una. Podés cambiarlo cuando quieras: el QR y el chip siguen siendo los mismos.</p>
+    <form id="form-entrar" class="tarjeta">
+      <label for="clave">Contraseña</label>
+      <div class="fila">
+        <input id="clave" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+        <button type="submit" id="boton-entrar">Entrar</button>
+      </div>
+      <p class="aviso" id="aviso-entrar" role="status"></p>
+    </form>
+  </section>
+
+  <section id="panel" hidden>
+    <h1 id="panel-titulo">Tus placas</h1>
+    <p class="suave" id="panel-bajada"></p>
+    <div class="fila" id="buscador" hidden style="margin-bottom:14px">
+      <input id="buscar" type="search" inputmode="numeric" placeholder="Buscar por número de placa" aria-label="Buscar por número de placa">
+    </div>
+    <div class="tarjeta" id="lista"></div>
+    <details>
+      <summary>Cómo conseguir el link de reseñas de Google</summary>
+      <ol>
+        <li>Entrá a tu Perfil de Negocio de Google (buscá el nombre de tu negocio en Google con la cuenta que lo administra).</li>
+        <li>Tocá “Pedir opiniones” o “Conseguir más reseñas”.</li>
+        <li>Copiá el link que aparece y pegalo acá, en tu placa.</li>
+      </ol>
+    </details>
+    <p style="margin-top:22px"><button type="button" class="liso" id="salir">Salir</button></p>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  // Dirección del programa que lee la planilla (se completa al publicar).
+  var API = 'https://script.google.com/macros/s/AKfycbwOd08ZOyyV1blAFzb4LgUmKeXH2lkF83XqBLAquEp7QqJVBvxXTzJ_Hx-ODPWTDilz7A/exec';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var vistas = ['abriendo', 'sin-activar', 'falla', 'entrar', 'panel'];
+  function ver(id) { vistas.forEach(function (v) { $(v).hidden = v !== id; }); }
+
+  var params = new URLSearchParams(location.search);
+  var n = /^\d{1,6}$/.test(params.get('n') || '') ? Number(params.get('n')) : 0;
+  var clave = '';
+
+  function pedir(cuerpo) {
+    if (!API) return Promise.reject(new Error('sin-api'));
+    var control = new AbortController();
+    var reloj = setTimeout(function () { control.abort(); }, 15000);
+    var opciones = cuerpo
+      ? { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(cuerpo), signal: control.signal }
+      : { signal: control.signal };
+    var url = cuerpo ? API : API + (API.indexOf('?') === -1 ? '?' : '&') + 'n=' + n;
+    return fetch(url, opciones).then(function (r) { return r.json(); }).finally(function () { clearTimeout(reloj); });
+  }
+
+  function linkSeguro(u) { return /^https?:\/\/[^\s]+$/i.test(u || ''); }
+
+  // 1) Alguien escaneó o apoyó el celular: llevarlo al destino.
+  function abrir() {
+    ver('abriendo');
+    pedir(null).then(function (d) {
+      if (d && d.ok && linkSeguro(d.url)) { location.replace(d.url); return; }
+      if (d && d.ok) { ver('sin-activar'); return; }
+      $('falla-texto').textContent = (d && d.error) || 'Revisá tu conexión y probá de nuevo.';
+      ver('falla');
+    }).catch(function (e) {
+      $('falla-texto').textContent = e.message === 'sin-api'
+        ? 'El sistema de placas todavía no está conectado.'
+        : 'Revisá tu conexión y probá de nuevo.';
+      ver('falla');
+    });
+  }
+
+  // 2) El dueño de la placa entra con su contraseña.
+  function aviso(el, texto, tipo) { el.textContent = texto || ''; el.className = 'aviso' + (tipo ? ' ' + tipo : ''); }
+
+  function entrar(ev) {
+    ev.preventDefault();
+    var boton = $('boton-entrar'), av = $('aviso-entrar');
+    clave = $('clave').value.trim();
+    if (!clave) return;
+    boton.disabled = true; aviso(av, 'Buscando tus placas…');
+    pedir({ accion: 'entrar', clave: clave }).then(function (d) {
+      if (!d || !d.ok) { aviso(av, (d && d.error) || 'No se pudo entrar.', 'mal'); return; }
+      aviso(av, '');
+      armarPanel(d);
+    }).catch(function (e) {
+      aviso(av, e.message === 'sin-api' ? 'El sistema de placas todavía no está conectado.' : 'No hay conexión. Probá de nuevo.', 'mal');
+    }).finally(function () { boton.disabled = false; });
+  }
+
+  function armarPanel(d) {
+    var lista = $('lista');
+    lista.textContent = '';
+    $('panel-titulo').textContent = d.maestra ? 'Todas las placas' : 'Tus placas';
+    $('panel-bajada').textContent = d.placas.length
+      ? 'Pegá el link al que querés que lleve cada placa y tocá Guardar. Para apagar una placa, dejá el link vacío y guardá.'
+      : 'Esta contraseña todavía no tiene placas habilitadas.';
+    $('buscador').hidden = d.placas.length < 9;
+    lista.hidden = !d.placas.length;
+    d.placas.forEach(function (p) { lista.appendChild(filaPlaca(p)); });
+    ver('panel');
+    if (n) {
+      var mia = lista.querySelector('[data-n="' + n + '"]');
+      if (mia) { mia.scrollIntoView({ block: 'center' }); mia.querySelector('input').focus(); }
+    }
+  }
+
+  function filaPlaca(p) {
+    var caja = document.createElement('div'); caja.className = 'placa'; caja.dataset.n = p.n;
+    var h = document.createElement('h2');
+    var nombre = document.createElement('span'); nombre.textContent = 'Placa ' + String(p.n).padStart(3, '0');
+    var estado = document.createElement('span');
+    function pintar(url) { estado.className = 'estado' + (url ? ' activa' : ''); estado.textContent = url ? 'Activa' : 'Sin activar'; }
+    pintar(p.url);
+    h.appendChild(nombre); h.appendChild(estado);
+    var fila = document.createElement('div'); fila.className = 'fila';
+    var campo = document.createElement('input');
+    campo.type = 'url'; campo.inputMode = 'url'; campo.placeholder = 'https://…'; campo.value = p.url || '';
+    campo.setAttribute('aria-label', 'Link de la placa ' + p.n);
+    campo.autocapitalize = 'off'; campo.spellcheck = false;
+    var boton = document.createElement('button'); boton.type = 'button'; boton.textContent = 'Guardar';
+    var av = document.createElement('p'); av.className = 'aviso'; av.setAttribute('role', 'status');
+    boton.addEventListener('click', function () {
+      boton.disabled = true; aviso(av, 'Guardando…');
+      pedir({ accion: 'guardar', clave: clave, n: p.n, url: campo.value }).then(function (d) {
+        if (!d || !d.ok) { aviso(av, (d && d.error) || 'No se pudo guardar.', 'mal'); return; }
+        campo.value = d.url; pintar(d.url);
+        aviso(av, d.url ? 'Guardado. La placa ya lleva a ese link.' : 'Guardado. La placa quedó sin activar.', 'ok');
+      }).catch(function () { aviso(av, 'No hay conexión. Probá de nuevo.', 'mal'); })
+        .finally(function () { boton.disabled = false; });
+    });
+    campo.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); boton.click(); } });
+    fila.appendChild(campo); fila.appendChild(boton);
+    caja.appendChild(h); caja.appendChild(fila); caja.appendChild(av);
+    return caja;
+  }
+
+  $('buscar').addEventListener('input', function () {
+    var q = this.value.replace(/\D/g, '');
+    Array.prototype.forEach.call($('lista').children, function (c) {
+      c.hidden = !!q && String(Number(c.dataset.n)).indexOf(String(Number(q))) !== 0 && c.dataset.n !== String(Number(q));
+    });
+  });
+  $('form-entrar').addEventListener('submit', entrar);
+  $('ir-a-activar').addEventListener('click', function () { ver('entrar'); $('clave').focus(); });
+  $('reintentar').addEventListener('click', function () { if (n) abrir(); else ver('entrar'); });
+  $('salir').addEventListener('click', function () { clave = ''; $('clave').value = ''; $('lista').textContent = ''; ver('entrar'); });
+
+  if (n && !params.has('config')) abrir(); else ver('entrar');
+})();
+</script>
+</body>
+</html>
